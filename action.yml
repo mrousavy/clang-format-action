@@ -1,4 +1,4 @@
-name: "clang-format Check"
+name: "clang-format Check (with custom .clang-format file)"
 description: "Use clang-format to see if your C/C++/Protobuf code is formatted according to project guidelines."
 
 branding:
