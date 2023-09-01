@@ -3,7 +3,7 @@
 ###############################################################################
 #                                entrypoint.sh                                #
 ###############################################################################
-# USAGE: ./entrypoint.sh [<path>] [<fallback style>]
+# USAGE: ./entrypoint.sh [<path>] [<.clang-format style path>]
 #
 # Checks all C/C++/Protobuf/CUDA files (.h, .H, .hpp, .hh, .h++, .hxx and .c,
 # .C, .cpp, .cc, .c++, .cxx, .proto, .cu) in the provided GitHub repository path
@@ -11,8 +11,7 @@
 # is not a directory, all C/C++/Protobuf/CUDA files are checked. If any files
 # are incorrectly formatted, the script lists them and exits with 1.
 #
-# Define your own formatting rules in a .clang-format file at your repository
-# root. Otherwise, the provided style guide (arg2) is used as a fallback.
+# Define your own formatting rules in a .clang-format file and pass it as arg2.
 
 # format_diff function
 # Accepts a filepath argument. The filepath passed to this function must point
@@ -21,9 +20,9 @@ format_diff() {
 	local filepath="$1"
 	# Invoke clang-format with dry run and formatting error output
 	if [[ $CLANG_FORMAT_MAJOR_VERSION -gt "9" ]]; then
-		local_format="$(docker run -i -v "$(pwd)":"$(pwd)" -w "$(pwd)" --rm ghcr.io/jidicula/clang-format:"$CLANG_FORMAT_MAJOR_VERSION" -n --Werror --style=file --fallback-style="$FALLBACK_STYLE" "${filepath}")"
+		local_format="$(docker run -i -v "$(pwd)":"$(pwd)" -w "$(pwd)" --rm ghcr.io/jidicula/clang-format:"$CLANG_FORMAT_MAJOR_VERSION" -n --Werror --style=file:"$STYLE_PATH" "${filepath}")"
 	else # Versions below 9 don't have dry run
-		formatted="$(docker run -i -v "$(pwd)":"$(pwd)" -w "$(pwd)" --rm ghcr.io/jidicula/clang-format:"$CLANG_FORMAT_MAJOR_VERSION" --style=file --fallback-style="$FALLBACK_STYLE" "${filepath}")"
+		formatted="$(docker run -i -v "$(pwd)":"$(pwd)" -w "$(pwd)" --rm ghcr.io/jidicula/clang-format:"$CLANG_FORMAT_MAJOR_VERSION" --style=file:"$STYLE_PATH" "${filepath}")"
 		local_format="$(diff -q <(cat "${filepath}") <(echo "${formatted}"))"
 	fi
 
@@ -43,7 +42,7 @@ format_diff() {
 
 CLANG_FORMAT_MAJOR_VERSION="$1"
 CHECK_PATH="$2"
-FALLBACK_STYLE="$3"
+STYLE_PATH="$3"
 EXCLUDE_REGEX="$4"
 INCLUDE_REGEX="$5"
 
